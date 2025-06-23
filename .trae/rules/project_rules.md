@@ -18,7 +18,7 @@ These rules define how Trae should respond to queries related to the Personalize
 
 - **Node.js**: v20.x (based on `@types/node@^20.10.6` in `package.json`).
 - **n8n**: Latest stable version compatible with the nodes defined in `n8n_workflow.md` (e.g., `n8n-nodes-base.webhook`, `n8n-nodes-base.airtable`).
-- **Dependencies** (from `package.json` in `project-structure.md`):
+- **Dependencies** (from `package.json`):
   - `express`: ^4.18.2
   - `airtable`: ^0.12.2
   - `googleapis`: ^118.0.0
@@ -36,7 +36,7 @@ These rules define how Trae should respond to queries related to the Personalize
   - `eslint`: ^8.56.0
   - `@types/node`: ^20.10.6
 - **Frontend**: Plain HTML/CSS/JavaScript (no frameworks like React or Vue, as per `frontend/registration-form/index.html`).
-- **Containerization**: Docker (defined in `deployment/docker/`) with Docker Compose (e.g., `docker-compose.yml`).
+- **Containerization**: Docker (defined in `deployment/docker/`) with Docker Compose (e.g., `docker-compose.yml`, `docker-compose.dev.yml`, `docker-compose.staging.yml`, `docker-compose.prod.yml`).
 - **Infrastructure**: Terraform (defined in `deployment/terraform/`).
 
 ## Testing Framework
@@ -68,6 +68,40 @@ These rules define how Trae should respond to queries related to the Personalize
   - Avoid deprecated Google APIs (e.g., older versions of Google Calendar API; use `googleapis@^118.0.0`).
   - Do not use SMS services other than Twilio for messaging to maintain consistency with WhatsApp delivery.
 - **Reasoning**: These restrictions ensure compatibility with the existing tech stack, minimize dependency sprawl, and align with the project’s infrastructure choices.
+
+## Git Workflow
+
+- **Commit Message Format**:
+  - Use the following standard for Git commit messages to ensure clarity and consistency:
+    - **Feature Commits**: `git commit -m "feat(<scope>): <description>"`
+      - Example: `git commit -m "feat(auth): add user authentication system"`
+      - Example: `git commit -m "feat(workflow): implement daily content delivery"`
+    - **Bug Fix Commits**: `git commit -m "fix(<scope>): <description>"`
+      - Example: `git commit -m "fix(api): resolve calendar integration timeout"`
+    - **Documentation Commits**: `git commit -m "docs(<scope>): <description>"`
+      - Example: `git commit -m "docs(readme): update setup instructions"`
+  - **Scopes**: Use relevant scopes such as `auth`, `workflow`, `api`, `docs`, `frontend`, `backend`, `database`, `integrations`, or `deployment` to categorize changes.
+  - **Guidelines**:
+    - Keep commit messages concise and descriptive.
+    - Use present tense (e.g., "add" instead of "added").
+    - Reference relevant files or components (e.g., `./n8n-workflows/exports/1-user-registration-workflow.json`).
+- **Branching Strategy**:
+  - Use feature branches (`feature/<feature-name>`), bugfix branches (`fix/<issue-name>`), and documentation branches (`docs/<doc-name>`).
+  - Merge to `main` for production-ready code, `develop` for integration, and `qa` for testing.
+
+## Environment Configurations
+
+- **Standard Environments**:
+  - **Development**: Configured with `./.env.development`, `./docker-compose.dev.yml`, and `./configs/dev/`.
+  - **QA**: Configured with `./.env.qa`, `./docker-compose.qa.yml`, and `./configs/qa/`.
+  - **Staging**: Configured with `./.env.staging`, `./docker-compose.staging.yml`, and `./configs/staging/`.
+  - **Production**: Configured with `./.env.production`, `./docker-compose.prod.yml`, and `./configs/production/`.
+- **Guidelines**:
+  - Maintain separate environment variables in `.env.<env>` files for each environment (e.g., `AIRTABLE_API_KEY`, `GOOGLE_SHEETS_ID`).
+  - Use Docker Compose files tailored to each environment for consistent deployments.
+  - Store environment-specific configurations in `./configs/<env>/` (e.g., API keys, database settings).
+  - Ensure `.env` files are excluded from Git via `.gitignore` to prevent sensitive data leaks.
+  - Use Terraform (`./deployment/terraform/`) for infrastructure setup in staging and production.
 
 ## File Structure
 
@@ -115,25 +149,4 @@ These rules define how Trae should respond to queries related to the Personalize
 ## API Integration Conventions
 
 - **Google Calendar**: Use `googleapis@^118.0.0` for calendar access, respecting `integrations/google/calendar/` utilities.
-- **Twilio**: Use `twilio@^4.19.3` for WhatsApp delivery, with message templates in `templates/whatsapp/`.
-- **Gmail**: Use `nodemailer@^6.9.8` or n8n’s Gmail node for email delivery, with templates in `templates/email/`.
-- **OpenAI**: Use `openai@^4.28.0` SDK for content generation, following `integrations/openai/` utilities.
-- **Airtable**: Use `airtable@^0.12.2` SDK, respecting `integrations/airtable/` utilities.
-
-## Response Guidelines
-
-- **Technical Depth**: Assume I’m familiar with the project’s tech stack (n8n, Node.js, Airtable, etc.) and provide implementation-focused answers.
-- **Examples**: When explaining workflows or code, reference specific nodes or files (e.g., `Node 2: Validate User Data` in `1-user-registration-workflow.json`, `airtable-setup.js`).
-- **Clarifications**: If my query involves a specific workflow, node, or file, confirm the context (e.g., “Are you referring to the User Registration workflow in `n8n-workflows/exports/1-user-registration-workflow.json`?”).
-- **Suggestions**: After answering, suggest related tasks or improvements (e.g., “Would you like to add user feedback collection to the Daily Content Delivery workflow?”).
-- **Documentation**: Reference files in `docs/` (e.g., `setup-guide.md`, `workflow-guide.md`) when relevant.
-
-## Output Formatting
-
-- **Code**: Use language-specific code blocks (e.g., ```javascript,```json, ```html).
-- **Workflows**: Format n8n workflows as JSON with clear node annotations.
-- **Diagrams**: Offer Mermaid diagrams for workflow or architecture explanations if I request visuals.
-- **Tables**: Use Markdown tables for comparing configurations, schemas, or options.
-- **File Paths**: Always include the full relative path when referencing files (e.g., `./frontend/registration-form/index.html`).
-
-These rules ensure Trae provides accurate, project-specific responses that align with the Personalized Micro-Learning Scheduler’s architecture, dependencies, testing practices, and API restrictions.
+- **Twilio**: Use `twilio@^4.19.3` for WhatsApp delivery, with message templates in `templates/whatsapp Comma separated values have been removed for clarity.

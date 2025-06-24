@@ -1,0 +1,149 @@
+# Prometheus configuration for Micro Learning Scheduler
+# Global configuration
+global:
+  scrape_interval: 15s     # Set the scrape interval to every 15 seconds
+  evaluation_interval: 15s # Evaluate rules every 15 seconds
+  scrape_timeout: 10s      # Timeout after 10 seconds
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+    monitor: 'micro-learning-scheduler-monitor'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets: ['alertmanager:9093']
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - "alerts/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'prometheus'
+    static_configs:
+    - targets: ['localhost:9090']
+
+  # Scrape the Node Exporter for host-level metrics
+  - job_name: 'node'
+    static_configs:
+    - targets: ['node-exporter:9100']
+
+  # Scrape the application metrics
+  - job_name: 'micro-learning-scheduler'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    kubernetes_sd_configs:
+    - role: pod
+      namespaces:
+        names:
+        - micro-learning-scheduler-production
+        - micro-learning-scheduler-staging
+        - micro-learning-scheduler-development
+    relabel_configs:
+    - source_labels: [__meta_kubernetes_pod_label_app]
+      action: keep
+      regex: micro-learning-scheduler
+    - source_labels: [__meta_kubernetes_pod_label_environment]
+      target_label: environment
+    - source_labels: [__meta_kubernetes_pod_name]
+      target_label: pod
+    - source_labels: [__meta_kubernetes_namespace]
+      target_label: namespace
+
+  # Scrape n8n metrics
+  - job_name: 'n8n'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    kubernetes_sd_configs:
+    - role: pod
+      namespaces:
+        names:
+        - micro-learning-scheduler-production
+        - micro-learning-scheduler-staging
+        - micro-learning-scheduler-development
+    relabel_configs:
+    - source_labels: [__meta_kubernetes_pod_label_app]
+      action: keep
+      regex: n8n
+    - source_labels: [__meta_kubernetes_pod_label_environment]
+      target_label: environment
+    - source_labels: [__meta_kubernetes_pod_name]
+      target_label: pod
+    - source_labels: [__meta_kubernetes_namespace]
+      target_label: namespace
+
+  # Scrape Redis metrics
+  - job_name: 'redis'
+    static_configs:
+    - targets: ['redis-exporter:9121']
+      labels:
+        environment: production
+    - targets: ['redis-exporter-staging:9121']
+      labels:
+        environment: staging
+    - targets: ['redis-exporter-dev:9121']
+      labels:
+        environment: development
+
+  # Scrape PostgreSQL metrics
+  - job_name: 'postgresql'
+    static_configs:
+    - targets: ['postgres-exporter:9187']
+      labels:
+        environment: production
+    - targets: ['postgres-exporter-staging:9187']
+      labels:
+        environment: staging
+
+  # Scrape Kubernetes API server
+  - job_name: 'kubernetes-apiservers'
+    kubernetes_sd_configs:
+    - role: endpoints
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+    - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+      action: keep
+      regex: default;kubernetes;https
+
+  # Scrape Kubernetes nodes
+  - job_name: 'kubernetes-nodes'
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    kubernetes_sd_configs:
+    - role: node
+    relabel_configs:
+    - action: labelmap
+      regex: __meta_kubernetes_node_label_(.+)
+    - target_label: __address__
+      replacement: kubernetes.default.svc:443
+    - source_labels: [__meta_kubernetes_node_name]
+      regex: (.+)
+      target_label: __metrics_path__
+      replacement: /api/v1/nodes/${1}/proxy/metrics
+
+  # Scrape cAdvisor for container metrics
+  - job_name: 'kubernetes-cadvisor'
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    kubernetes_sd_configs:
+    - role: node
+    relabel_configs:
+    - action: labelmap
+      regex: __meta_kubernetes_node_label_(.+)
+    - target_label: __address__
+      replacement: kubernetes.default.svc:443
+    - source_labels: [__meta_kubernetes_node_name]
+      regex: (.+)
+      target_label: __metrics_path__
+      replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor

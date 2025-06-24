@@ -1,0 +1,236 @@
+# Prometheus Alert Rules for Micro Learning Scheduler
+# Application-specific monitoring and alerting
+
+groups:
+- name: application.rules
+  rules:
+  # Application Health Alerts
+  - alert: ApplicationDown
+    expr: up{job="micro-learning-scheduler"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      service: micro-learning-scheduler
+    annotations:
+      summary: "Application {{ $labels.instance }} is down"
+      description: "Application {{ $labels.instance }} in {{ $labels.environment }} environment has been down for more than 1 minute."
+
+  - alert: HighErrorRate
+    expr: |
+      (
+        rate(http_requests_total{job="micro-learning-scheduler",status=~"5.."}[5m]) /
+        rate(http_requests_total{job="micro-learning-scheduler"}[5m])
+      ) > 0.05
+    for: 5m
+    labels:
+      severity: warning
+      service: micro-learning-scheduler
+    annotations:
+      summary: "High error rate detected"
+      description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.instance }} in {{ $labels.environment }} environment."
+
+  - alert: HighResponseTime
+    expr: |
+      histogram_quantile(0.95,
+        rate(http_request_duration_seconds_bucket{job="micro-learning-scheduler"}[5m])
+      ) > 2
+    for: 5m
+    labels:
+      severity: warning
+      service: micro-learning-scheduler
+    annotations:
+      summary: "High response time detected"
+      description: "95th percentile response time is {{ $value }}s for {{ $labels.instance }} in {{ $labels.environment }} environment."
+
+  # Database Alerts
+  - alert: DatabaseConnectionFailure
+    expr: database_connections_failed_total{job="micro-learning-scheduler"} > 0
+    for: 1m
+    labels:
+      severity: critical
+      service: database
+    annotations:
+      summary: "Database connection failures detected"
+      description: "{{ $value }} database connection failures detected for {{ $labels.instance }} in {{ $labels.environment }} environment."
+
+  - alert: HighDatabaseConnections
+    expr: database_connections_active{job="micro-learning-scheduler"} > 80
+    for: 5m
+    labels:
+      severity: warning
+      service: database
+    annotations:
+      summary: "High number of database connections"
+      description: "{{ $value }} active database connections for {{ $labels.instance }} in {{ $labels.environment }} environment."
+
+  # Redis Alerts
+  - alert: RedisDown
+    expr: up{job="redis"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      service: redis
+    annotations:
+      summary: "Redis instance {{ $labels.instance }} is down"
+      description: "Redis instance {{ $labels.instance }} in {{ $labels.environment }} environment has been down for more than 1 minute."
+
+  - alert: RedisHighMemoryUsage
+    expr: |
+      (
+        redis_memory_used_bytes{job="redis"} /
+        redis_memory_max_bytes{job="redis"}
+      ) > 0.8
+    for: 5m
+    labels:
+      severity: warning
+      service: redis
+    annotations:
+      summary: "Redis high memory usage"
+      description: "Redis memory usage is {{ $value | humanizePercentage }} for {{ $labels.instance }} in {{ $labels.environment }} environment."
+
+  # n8n Workflow Alerts
+  - alert: N8nDown
+    expr: up{job="n8n"} == 0
+    for: 1m
+    labels:
+      severity: critical
+      service: n8n
+    annotations:
+      summary: "n8n instance {{ $labels.instance }} is down"
+      description: "n8n instance {{ $labels.instance }} in {{ $labels.environment }} environment has been down for more than 1 minute."
+
+  - alert: WorkflowExecutionFailures
+    expr: increase(n8n_workflow_executions_failed_total[5m]) > 5
+    for: 2m
+    labels:
+      severity: warning
+      service: n8n
+    annotations:
+      summary: "High workflow execution failures"
+      description: "{{ $value }} workflow execution failures in the last 5 minutes for {{ $labels.instance }} in {{ $labels.environment }} environment."
+
+  - alert: WorkflowExecutionDelay
+    expr: n8n_workflow_execution_duration_seconds > 300
+    for: 1m
+    labels:
+      severity: warning
+      service: n8n
+    annotations:
+      summary: "Long-running workflow execution"
+      description: "Workflow execution taking {{ $value }}s for {{ $labels.workflow_name }} in {{ $labels.environment }} environment."
+
+  # API Integration Alerts
+  - alert: OpenAIAPIFailures
+    expr: increase(openai_api_requests_failed_total[5m]) > 3
+    for: 2m
+    labels:
+      severity: warning
+      service: openai-integration
+    annotations:
+      summary: "OpenAI API failures detected"
+      description: "{{ $value }} OpenAI API failures in the last 5 minutes for {{ $labels.instance }} in {{ $labels.environment }} environment."
+
+  - alert: EmailDeliveryFailures
+    expr: increase(email_delivery_failed_total[5m]) > 5
+    for: 2m
+    labels:
+      severity: warning
+      service: email-integration
+    annotations:
+      summary: "Email delivery failures detected"
+      description: "{{ $value }} email delivery failures in the last 5 minutes for {{ $labels.instance }} in {{ $labels.environment }} environment."
+
+  - alert: WhatsAppDeliveryFailures
+    expr: increase(whatsapp_delivery_failed_total[5m]) > 3
+    for: 2m
+    labels:
+      severity: warning
+      service: whatsapp-integration
+    annotations:
+      summary: "WhatsApp delivery failures detected"
+      description: "{{ $value }} WhatsApp delivery failures in the last 5 minutes for {{ $labels.instance }} in {{ $labels.environment }} environment."
+
+  # Queue Processing Alerts
+  - alert: HighQueueSize
+    expr: queue_size{job="micro-learning-scheduler"} > 1000
+    for: 5m
+    labels:
+      severity: warning
+      service: queue
+    annotations:
+      summary: "High queue size detected"
+      description: "Queue size is {{ $value }} for {{ $labels.queue_name }} in {{ $labels.environment }} environment."
+
+  - alert: QueueProcessingDelay
+    expr: queue_processing_delay_seconds{job="micro-learning-scheduler"} > 60
+    for: 5m
+    labels:
+      severity: warning
+      service: queue
+    annotations:
+      summary: "Queue processing delay detected"
+      description: "Queue processing delay is {{ $value }}s for {{ $labels.queue_name }} in {{ $labels.environment }} environment."
+
+  # Resource Usage Alerts
+  - alert: HighCPUUsage
+    expr: |
+      (
+        rate(process_cpu_seconds_total{job="micro-learning-scheduler"}[5m]) * 100
+      ) > 80
+    for: 5m
+    labels:
+      severity: warning
+      service: micro-learning-scheduler
+    annotations:
+      summary: "High CPU usage detected"
+      description: "CPU usage is {{ $value }}% for {{ $labels.instance }} in {{ $labels.environment }} environment."
+
+  - alert: HighMemoryUsage
+    expr: |
+      (
+        process_resident_memory_bytes{job="micro-learning-scheduler"} /
+        node_memory_MemTotal_bytes
+      ) > 0.8
+    for: 5m
+    labels:
+      severity: warning
+      service: micro-learning-scheduler
+    annotations:
+      summary: "High memory usage detected"
+      description: "Memory usage is {{ $value | humanizePercentage }} for {{ $labels.instance }} in {{ $labels.environment }} environment."
+
+  # Disk Space Alerts
+  - alert: LowDiskSpace
+    expr: |
+      (
+        node_filesystem_avail_bytes{mountpoint="/"} /
+        node_filesystem_size_bytes{mountpoint="/"}
+      ) < 0.1
+    for: 5m
+    labels:
+      severity: critical
+      service: system
+    annotations:
+      summary: "Low disk space detected"
+      description: "Disk space is {{ $value | humanizePercentage }} available on {{ $labels.instance }}."
+
+  # Security Alerts
+  - alert: UnauthorizedAccess
+    expr: increase(http_requests_total{job="micro-learning-scheduler",status="401"}[5m]) > 10
+    for: 2m
+    labels:
+      severity: warning
+      service: security
+    annotations:
+      summary: "High number of unauthorized access attempts"
+      description: "{{ $value }} unauthorized access attempts in the last 5 minutes for {{ $labels.instance }} in {{ $labels.environment }} environment."
+
+  - alert: RateLimitExceeded
+    expr: increase(http_requests_total{job="micro-learning-scheduler",status="429"}[5m]) > 20
+    for: 2m
+    labels:
+      severity: warning
+      service: security
+    annotations:
+      summary: "Rate limit exceeded frequently"
+      description: "{{ $value }} rate limit exceeded responses in the last 5 minutes for {{ $labels.instance }} in {{ $labels.environment }} environment."

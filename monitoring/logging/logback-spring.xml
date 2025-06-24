@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Logback configuration for Micro Learning Scheduler -->
+<!-- Supports different log levels and formats for each environment -->
+
+<configuration>
+    <!-- Define properties -->
+    <springProfile name="!production">
+        <property name="LOG_LEVEL" value="DEBUG"/>
+        <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"/>
+    </springProfile>
+    
+    <springProfile name="production">
+        <property name="LOG_LEVEL" value="INFO"/>
+        <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{traceId},%X{spanId}] - %msg%n"/>
+    </springProfile>
+    
+    <property name="LOG_DIR" value="${LOG_DIR:-./logs}"/>
+    <property name="APP_NAME" value="micro-learning-scheduler"/>
+    
+    <!-- Console Appender -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+    
+    <!-- JSON Console Appender for Production -->
+    <springProfile name="production">
+        <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <timestamp/>
+                    <logLevel/>
+                    <loggerName/>
+                    <message/>
+                    <mdc/>
+                    <arguments/>
+                    <stackTrace/>
+                    <pattern>
+                        <pattern>
+                            {
+                                "app": "${APP_NAME}",
+                                "environment": "${ENVIRONMENT:-production}",
+                                "version": "${APP_VERSION:-unknown}",
+                                "hostname": "${HOSTNAME:-unknown}",
+                                "pod": "${POD_NAME:-unknown}"
+                            }
+                        </pattern>
+                    </pattern>
+                </providers>
+            </encoder>
+        </appender>
+    </springProfile>
+    
+    <!-- File Appender for Application Logs -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/${APP_NAME}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/${APP_NAME}.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>10GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+    
+    <!-- Error File Appender -->
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/${APP_NAME}-error.log</file>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/${APP_NAME}-error.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>50MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>5GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+    
+    <!-- Audit File Appender -->
+    <appender name="AUDIT_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/${APP_NAME}-audit.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/${APP_NAME}-audit.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>50MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>90</maxHistory>
+            <totalSizeCap>5GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp/>
+                <logLevel/>
+                <loggerName/>
+                <message/>
+                <mdc/>
+                <arguments/>
+                <pattern>
+                    <pattern>
+                        {
+                            "app": "${APP_NAME}",
+                            "environment": "${ENVIRONMENT:-production}",
+                            "audit_type": "%X{auditType}",
+                            "user_id": "%X{userId}",
+                            "session_id": "%X{sessionId}",
+                            "ip_address": "%X{ipAddress}",
+                            "user_agent": "%X{userAgent}"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+    </appender>
+    
+    <!-- Performance File Appender -->
+    <appender name="PERFORMANCE_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/${APP_NAME}-performance.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/${APP_NAME}-performance.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>5GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp/>
+                <message/>
+                <mdc/>
+                <pattern>
+                    <pattern>
+                        {
+                            "app": "${APP_NAME}",
+                            "environment": "${ENVIRONMENT:-production}",
+                            "operation": "%X{operation}",
+                            "duration_ms": "%X{durationMs}",
+                            "status": "%X{status}",
+                            "endpoint": "%X{endpoint}",
+                            "method": "%X{method}"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+    </appender>
+    
+    <!-- Async Appenders for Better Performance -->
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="FILE"/>
+        <queueSize>1024</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>false</includeCallerData>
+    </appender>
+    
+    <appender name="ASYNC_ERROR_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="ERROR_FILE"/>
+        <queueSize>256</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>true</includeCallerData>
+    </appender>
+    
+    <!-- Logger Configurations -->
+    
+    <!-- Root Logger -->
+    <root level="${LOG_LEVEL}">
+        <springProfile name="!production">
+            <appender-ref ref="CONSOLE"/>
+        </springProfile>
+        <springProfile name="production">
+            <appender-ref ref="JSON_CONSOLE"/>
+        </springProfile>
+        <appender-ref ref="ASYNC_FILE"/>
+        <appender-ref ref="ASYNC_ERROR_FILE"/>
+    </root>
+    
+    <!-- Application Loggers -->
+    <logger name="com.microlearning.scheduler" level="${LOG_LEVEL}" additivity="false">
+        <springProfile name="!production">
+            <appender-ref ref="CONSOLE"/>
+        </springProfile>
+        <springProfile name="production">
+            <appender-ref ref="JSON_CONSOLE"/>
+        </springProfile>
+        <appender-ref ref="ASYNC_FILE"/>
+        <appender-ref ref="ASYNC_ERROR_FILE"/>
+    </logger>
+    
+    <!-- Audit Logger -->
+    <logger name="AUDIT" level="INFO" additivity="false">
+        <appender-ref ref="AUDIT_FILE"/>
+    </logger>
+    
+    <!-- Performance Logger -->
+    <logger name="PERFORMANCE" level="INFO" additivity="false">
+        <appender-ref ref="PERFORMANCE_FILE"/>
+    </logger>
+    
+    <!-- Security Logger -->
+    <logger name="SECURITY" level="INFO" additivity="false">
+        <springProfile name="!production">
+            <appender-ref ref="CONSOLE"/>
+        </springProfile>
+        <springProfile name="production">
+            <appender-ref ref="JSON_CONSOLE"/>
+        </springProfile>
+        <appender-ref ref="ASYNC_FILE"/>
+        <appender-ref ref="ASYNC_ERROR_FILE"/>
+    </logger>
+    
+    <!-- Third-party Library Loggers -->
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="org.springframework.security" level="DEBUG"/>
+    <logger name="org.springframework.web" level="INFO"/>
+    <logger name="org.springframework.data" level="INFO"/>
+    
+    <logger name="org.hibernate" level="WARN"/>
+    <logger name="org.hibernate.SQL" level="DEBUG"/>
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+    
+    <logger name="com.zaxxer.hikari" level="INFO"/>
+    <logger name="redis.clients.jedis" level="WARN"/>
+    
+    <!-- HTTP Client Loggers -->
+    <logger name="org.apache.http" level="INFO"/>
+    <logger name="httpclient.wire" level="DEBUG"/>
+    
+    <!-- n8n Integration Loggers -->
+    <logger name="n8n.integration" level="DEBUG"/>
+    <logger name="n8n.webhook" level="INFO"/>
+    
+    <!-- External API Loggers -->
+    <logger name="openai.api" level="INFO"/>
+    <logger name="sendgrid.api" level="INFO"/>
+    <logger name="slack.api" level="INFO"/>
+    <logger name="google.api" level="INFO"/>
+    <logger name="twilio.api" level="INFO"/>
+    
+    <!-- Metrics and Monitoring -->
+    <logger name="io.micrometer" level="INFO"/>
+    <logger name="io.prometheus" level="INFO"/>
+    
+    <!-- Development-specific Loggers -->
+    <springProfile name="development">
+        <logger name="org.springframework.web.servlet.DispatcherServlet" level="DEBUG"/>
+        <logger name="org.springframework.security.web" level="DEBUG"/>
+        <logger name="org.springframework.transaction" level="DEBUG"/>
+    </springProfile>
+    
+    <!-- Production-specific Loggers -->
+    <springProfile name="production">
+        <logger name="org.springframework.boot.actuate" level="WARN"/>
+        <logger name="org.springframework.cloud" level="WARN"/>
+    </springProfile>
+    
+</configuration>

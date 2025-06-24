@@ -30,6 +30,114 @@ This document outlines five phases for implementing the Personalized Micro-Learn
 **Environment**: Focus on development environment (`./.env.development`, `docker-compose.dev.yml`).
 **Duration**: ~1-2 days (depending on team size).
 
+## Phase 1.5: Advanced Environment Setup (8% Effort)
+
+**Objective**: Complete production-ready infrastructure and deployment automation.
+**Tasks**:
+
+1. **Complete Dockerfile implementation** with proper build stages:
+   - Multi-stage builds (development, staging, production targets)
+   - Optimize image size and security
+   - Health check endpoints
+
+2. **Implement deployment scripts** for automated deployments:
+   - `./deployment/scripts/deploy.sh` with environment-specific logic
+   - `./deployment/scripts/rollback.sh` for quick recovery
+   - `./deployment/scripts/health-check.sh` for validation
+
+3. **Configure Kubernetes manifests** for container orchestration:
+   - Complete `./deployment/kubernetes/deployments.yaml`
+   - Configure `configmaps.yaml`, `secrets.yaml`, `services.yaml`
+   - Set up ingress and namespace configurations
+
+4. **Set up CI/CD pipelines** for automated testing and deployment:
+   - GitHub Actions or GitLab CI configuration
+   - Automated testing on pull requests
+   - Environment-specific deployment triggers
+
+5. **Implement secrets management** for production credentials:
+   - Kubernetes secrets or external secret management
+   - Environment variable injection
+   - API key rotation procedures
+
+6. **Configure monitoring and logging**:
+   - Complete Grafana/Prometheus setup in `./deployment/docker/monitoring/`
+   - Log aggregation and alerting
+   - Performance metrics collection
+
+**Deliverables**:
+
+- Production-ready Dockerfile with multi-stage builds
+- Automated deployment scripts and CI/CD pipelines
+- Complete Kubernetes manifests
+- Monitoring and logging infrastructure
+- Secrets management system
+
+**Git Commits**:
+
+- `git commit -m "feat(docker): implement multi-stage Dockerfile with optimization"`
+- `git commit -m "feat(deployment): add automated deployment scripts"`
+- `git commit -m "feat(k8s): configure Kubernetes manifests for orchestration"`
+- `git commit -m "feat(cicd): set up automated testing and deployment pipelines"`
+- `git commit -m "feat(security): implement secrets management system"`
+- `git commit -m "feat(monitoring): configure Grafana and Prometheus setup"`
+
+**Environment**: Test in development; validate in staging.
+**Duration**: ~3-4 days.
+
+## Phase 1.5: Advanced Environment Setup (8% Effort)
+
+**Objective**: Complete production-ready infrastructure and deployment automation.
+**Tasks**:
+
+1. **Complete Dockerfile implementation** with proper build stages:
+   - Multi-stage builds (development, staging, production targets)
+   - Optimize image size and security
+   - Health check endpoints
+
+2. **Implement deployment scripts** for automated deployments:
+   - `./deployment/scripts/deploy.sh` with environment-specific logic
+   - `./deployment/scripts/rollback.sh` for quick recovery
+   - `./deployment/scripts/health-check.sh` for validation
+
+3. **Configure Kubernetes manifests** for container orchestration:
+   - Complete `./deployment/kubernetes/deployments.yaml`
+   - Configure `configmaps.yaml`, `secrets.yaml`, `services.yaml`
+   - Set up ingress and namespace configurations
+
+4. **Set up CI/CD pipelines** for automated testing and deployment:
+   - GitHub Actions configuration
+   - Automated testing on pull requests
+   - Environment-specific deployment triggers
+
+5. **Implement secrets management** for production credentials:
+   - Kubernetes secrets integration
+   - Environment variable injection
+   - API key rotation procedures
+
+6. **Configure monitoring and logging**:
+   - Complete Grafana/Prometheus setup in `./deployment/docker/monitoring/`
+   - Log aggregation and alerting
+   - Performance metrics collection
+
+**Deliverables**:
+- Production-ready Dockerfile with multi-stage builds
+- Automated deployment scripts and CI/CD pipelines
+- Complete Kubernetes manifests
+- Monitoring and logging infrastructure
+- Secrets management system
+
+**Git Commits**:
+- `git commit -m "feat(docker): implement multi-stage Dockerfile with optimization"`
+- `git commit -m "feat(deployment): add automated deployment scripts"`
+- `git commit -m "feat(k8s): configure Kubernetes manifests for orchestration"`
+- `git commit -m "feat(cicd): set up automated testing and deployment pipelines"`
+- `git commit -m "feat(security): implement secrets management system"`
+- `git commit -m "feat(monitoring): configure Grafana and Prometheus setup"`
+
+**Environment**: Test in development; validate in staging.
+**Duration**: ~3-4 days.
+
 ## Phase 2: Database Setup (15% Effort)
 
 **Objective**: Configure Airtable and Google Sheets for data storage and logging.
@@ -116,7 +224,7 @@ This document outlines five phases for implementing the Personalized Micro-Learn
 **Environment**: Develop in development; test in QA and staging.
 **Duration**: ~4-5 days.
 
-## Phase 5: Testing, Deployment, and Documentation (10% Effort)
+## Phase 5: Testing, Deployment, and Documentation (2% Effort)
 
 **Objective**: Ensure quality, deploy the system, and finalize documentation.
 **Tasks**:

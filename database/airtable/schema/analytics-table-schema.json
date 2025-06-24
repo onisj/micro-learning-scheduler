@@ -1,1 +1,148 @@
-{}
+{
+  "name": "Analytics",
+  "description": "Analytics data for tracking user learning progress and engagement metrics",
+  "fields": {
+    "analytics_id": {
+      "type": "singleLineText",
+      "description": "Unique identifier for analytics record",
+      "options": {
+        "required": true
+      }
+    },
+    "user_id": {
+      "type": "singleLineText",
+      "description": "Reference to user ID",
+      "options": {
+        "required": true
+      }
+    },
+    "date": {
+      "type": "date",
+      "description": "Date of analytics data",
+      "options": {
+        "dateFormat": {
+          "name": "iso"
+        },
+        "required": true
+      }
+    },
+    "lessons_delivered": {
+      "type": "number",
+      "description": "Number of lessons delivered on this date",
+      "options": {
+        "precision": 0,
+        "required": true
+      }
+    },
+    "lessons_completed": {
+      "type": "number",
+      "description": "Number of lessons completed on this date",
+      "options": {
+        "precision": 0,
+        "required": true
+      }
+    },
+    "total_engagement_time": {
+      "type": "number",
+      "description": "Total engagement time in minutes",
+      "options": {
+        "precision": 0,
+        "required": false
+      }
+    },
+    "average_engagement_score": {
+      "type": "number",
+      "description": "Average engagement score (1-10)",
+      "options": {
+        "precision": 1,
+        "required": false
+      }
+    },
+    "completion_rate": {
+      "type": "number",
+      "description": "Completion rate percentage",
+      "options": {
+        "precision": 1,
+        "required": false
+      }
+    },
+    "preferred_content_type": {
+      "type": "singleSelect",
+      "description": "Most engaged content type for this period",
+      "options": {
+        "choices": [
+          {"name": "Video", "color": "blueLight2"},
+          {"name": "Article", "color": "greenLight2"},
+          {"name": "Exercise", "color": "orangeLight2"},
+          {"name": "Mixed", "color": "purpleLight2"}
+        ],
+        "required": false
+      }
+    },
+    "peak_engagement_time": {
+      "type": "singleLineText",
+      "description": "Time of day with highest engagement (HH:MM format)",
+      "options": {
+        "required": false
+      }
+    },
+    "created_at": {
+      "type": "dateTime",
+      "description": "Record creation timestamp",
+      "options": {
+        "dateFormat": {
+          "name": "iso"
+        },
+        "timeFormat": {
+          "name": "24hour"
+        },
+        "timeZone": "utc",
+        "required": false
+      }
+    },
+    "updated_at": {
+      "type": "dateTime",
+      "description": "Record last update timestamp",
+      "options": {
+        "dateFormat": {
+          "name": "iso"
+        },
+        "timeFormat": {
+          "name": "24hour"
+        },
+        "timeZone": "utc",
+        "required": false
+      }
+    }
+  },
+  "views": [
+    {
+      "name": "All Analytics",
+      "type": "grid"
+    },
+    {
+      "name": "Recent Analytics",
+      "type": "grid",
+      "sort": [
+        {
+          "field": "date",
+          "direction": "desc"
+        }
+      ]
+    },
+    {
+      "name": "High Engagement",
+      "type": "grid",
+      "filter": {
+        "type": "and",
+        "conditions": [
+          {
+            "field": "average_engagement_score",
+            "operator": ">",
+            "value": 7
+          }
+        ]
+      }
+    }
+  ]
+}

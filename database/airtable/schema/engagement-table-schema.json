@@ -1,1 +1,201 @@
-{}
+{
+  "name": "Engagement",
+  "description": "Detailed engagement tracking for user interactions with lessons",
+  "fields": {
+    "engagement_id": {
+      "type": "singleLineText",
+      "description": "Unique identifier for engagement record",
+      "options": {
+        "required": true
+      }
+    },
+    "user_id": {
+      "type": "singleLineText",
+      "description": "Reference to user ID",
+      "options": {
+        "required": true
+      }
+    },
+    "lesson_id": {
+      "type": "singleLineText",
+      "description": "Reference to lesson ID",
+      "options": {
+        "required": true
+      }
+    },
+    "interaction_type": {
+      "type": "singleSelect",
+      "description": "Type of user interaction",
+      "options": {
+        "choices": [
+          {"name": "view", "color": "blueLight2"},
+          {"name": "start", "color": "greenLight2"},
+          {"name": "pause", "color": "yellowLight2"},
+          {"name": "resume", "color": "orangeLight2"},
+          {"name": "complete", "color": "greenBright"},
+          {"name": "feedback", "color": "purpleLight2"},
+          {"name": "share", "color": "pinkLight2"},
+          {"name": "bookmark", "color": "grayLight2"}
+        ],
+        "required": true
+      }
+    },
+    "timestamp": {
+      "type": "dateTime",
+      "description": "When the interaction occurred",
+      "options": {
+        "dateFormat": {
+          "name": "iso"
+        },
+        "timeFormat": {
+          "name": "24hour"
+        },
+        "timeZone": "utc",
+        "required": true
+      }
+    },
+    "duration": {
+      "type": "number",
+      "description": "Duration of interaction in seconds",
+      "options": {
+        "precision": 0,
+        "required": false
+      }
+    },
+    "device_type": {
+      "type": "singleSelect",
+      "description": "Device used for interaction",
+      "options": {
+        "choices": [
+          {"name": "mobile", "color": "blueLight2"},
+          {"name": "tablet", "color": "greenLight2"},
+          {"name": "desktop", "color": "orangeLight2"},
+          {"name": "unknown", "color": "grayLight2"}
+        ],
+        "required": false
+      }
+    },
+    "location": {
+      "type": "singleLineText",
+      "description": "Geographic location (city, state/country)",
+      "options": {
+        "required": false
+      }
+    },
+    "session_id": {
+      "type": "singleLineText",
+      "description": "Session identifier for grouping interactions",
+      "options": {
+        "required": false
+      }
+    },
+    "user_agent": {
+      "type": "longText",
+      "description": "Browser/app user agent string",
+      "options": {
+        "required": false
+      }
+    },
+    "referrer": {
+      "type": "singleLineText",
+      "description": "Source that led to this interaction",
+      "options": {
+        "required": false
+      }
+    },
+    "engagement_score": {
+      "type": "number",
+      "description": "Calculated engagement score for this interaction (1-10)",
+      "options": {
+        "precision": 1,
+        "required": false
+      }
+    },
+    "created_at": {
+      "type": "dateTime",
+      "description": "Record creation timestamp",
+      "options": {
+        "dateFormat": {
+          "name": "iso"
+        },
+        "timeFormat": {
+          "name": "24hour"
+        },
+        "timeZone": "utc",
+        "required": false
+      }
+    },
+    "updated_at": {
+      "type": "dateTime",
+      "description": "Record last update timestamp",
+      "options": {
+        "dateFormat": {
+          "name": "iso"
+        },
+        "timeFormat": {
+          "name": "24hour"
+        },
+        "timeZone": "utc",
+        "required": false
+      }
+    }
+  },
+  "views": [
+    {
+      "name": "All Engagement",
+      "type": "grid"
+    },
+    {
+      "name": "Recent Activity",
+      "type": "grid",
+      "sort": [
+        {
+          "field": "timestamp",
+          "direction": "desc"
+        }
+      ]
+    },
+    {
+      "name": "Completions",
+      "type": "grid",
+      "filter": {
+        "type": "and",
+        "conditions": [
+          {
+            "field": "interaction_type",
+            "operator": "=",
+            "value": "complete"
+          }
+        ]
+      }
+    },
+    {
+      "name": "High Engagement",
+      "type": "grid",
+      "filter": {
+        "type": "and",
+        "conditions": [
+          {
+            "field": "engagement_score",
+            "operator": ">",
+            "value": 7
+          }
+        ]
+      }
+    },
+    {
+      "name": "Mobile Users",
+      "type": "grid",
+      "filter": {
+        "type": "and",
+        "conditions": [
+          {
+            "field": "device_type",
+            "operator": "=",
+            "value": "mobile"
+          }
+        ]
+      }
+    }
+  ]
+}

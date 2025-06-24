@@ -1,1 +1,137 @@
-{}
+{
+  "tableName": "Users",
+  "description": "User profiles and registration data for the micro-learning scheduler",
+  "fields": {
+    "user_id": {
+      "type": "singleLineText",
+      "description": "Unique identifier for the user (Primary Field)",
+      "options": {
+        "isPrimary": true
+      }
+    },
+    "name": {
+      "type": "singleLineText",
+      "description": "Full name of the user"
+    },
+    "email": {
+      "type": "email",
+      "description": "User's email address"
+    },
+    "whatsapp": {
+      "type": "phoneNumber",
+      "description": "WhatsApp phone number for notifications"
+    },
+    "job_title": {
+      "type": "singleLineText",
+      "description": "User's current job title or role"
+    },
+    "skill_gaps": {
+      "type": "multipleSelect",
+      "description": "Areas where user wants to improve skills",
+      "options": {
+        "choices": [
+          {"name": "Python", "color": "blue"},
+          {"name": "JavaScript", "color": "green"},
+          {"name": "Leadership", "color": "red"},
+          {"name": "Data Analysis", "color": "purple"},
+          {"name": "Project Management", "color": "orange"},
+          {"name": "Communication", "color": "yellow"},
+          {"name": "Machine Learning", "color": "cyan"},
+          {"name": "Cloud Computing", "color": "pink"},
+          {"name": "DevOps", "color": "gray"},
+          {"name": "UI/UX Design", "color": "teal"}
+        ]
+      }
+    },
+    "learning_format": {
+      "type": "singleSelect",
+      "description": "Preferred learning content format",
+      "options": {
+        "choices": [
+          {"name": "Video", "color": "blue"},
+          {"name": "Text", "color": "green"},
+          {"name": "Mixed", "color": "orange"},
+          {"name": "Interactive", "color": "purple"}
+        ]
+      }
+    },
+    "preferred_time": {
+      "type": "singleSelect",
+      "description": "Preferred time of day for learning sessions",
+      "options": {
+        "choices": [
+          {"name": "Morning", "color": "yellow"},
+          {"name": "Afternoon", "color": "orange"},
+          {"name": "Evening", "color": "blue"}
+        ]
+      }
+    },
+    "timezone": {
+      "type": "singleSelect",
+      "description": "User's timezone for scheduling",
+      "options": {
+        "choices": [
+          {"name": "UTC", "color": "gray"},
+          {"name": "America/New_York", "color": "blue"},
+          {"name": "America/Chicago", "color": "green"},
+          {"name": "America/Denver", "color": "orange"},
+          {"name": "America/Los_Angeles", "color": "red"},
+          {"name": "Europe/London", "color": "purple"},
+          {"name": "Europe/Paris", "color": "yellow"},
+          {"name": "Asia/Tokyo", "color": "pink"},
+          {"name": "Asia/Shanghai", "color": "cyan"},
+          {"name": "Australia/Sydney", "color": "teal"}
+        ]
+      }
+    },
+    "registration_date": {
+      "type": "date",
+      "description": "Date when user registered for the program"
+    },
+    "last_learning_session": {
+      "type": "dateTime",
+      "description": "Timestamp of the last completed learning session"
+    },
+    "total_sessions": {
+      "type": "number",
+      "description": "Total number of learning sessions completed",
+      "options": {
+        "precision": 0
+      }
+    },
+    "completion_rate": {
+      "type": "percent",
+      "description": "Percentage of assigned lessons completed",
+      "options": {
+        "precision": 1
+      }
+    },
+    "status": {
+      "type": "singleSelect",
+      "description": "Current status of the user in the program",
+      "options": {
+        "choices": [
+          {"name": "active", "color": "green"},
+          {"name": "paused", "color": "yellow"},
+          {"name": "inactive", "color": "red"},
+          {"name": "completed", "color": "blue"}
+        ]
+      }
+    },
+    "calendar_email": {
+      "type": "email",
+      "description": "Email address for Google Calendar integration"
+    },
+    "notification_preferences": {
+      "type": "multipleSelect",
+      "description": "Preferred notification channels",
+      "options": {
+        "choices": [
+          {"name": "Email", "color": "blue"},
+          {"name": "WhatsApp", "color": "green"},
+          {"name": "SMS", "color": "orange"}
+        ]
+      }
+    }
+  }
+}

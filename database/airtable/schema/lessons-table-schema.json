@@ -1,1 +1,139 @@
-{}
+{
+  "tableName": "Lessons",
+  "description": "Individual learning lessons and their delivery status",
+  "fields": {
+    "lesson_id": {
+      "type": "singleLineText",
+      "description": "Unique identifier for the lesson (Primary Field)",
+      "options": {
+        "isPrimary": true
+      }
+    },
+    "user_id": {
+      "type": "singleLineText",
+      "description": "Reference to the user this lesson belongs to"
+    },
+    "day": {
+      "type": "number",
+      "description": "Day number in the learning sequence (1-30)",
+      "options": {
+        "precision": 0
+      }
+    },
+    "title": {
+      "type": "singleLineText",
+      "description": "Title of the learning lesson"
+    },
+    "content_type": {
+      "type": "singleSelect",
+      "description": "Type of learning content",
+      "options": {
+        "choices": [
+          {"name": "Video", "color": "blue"},
+          {"name": "Article", "color": "green"},
+          {"name": "Exercise", "color": "orange"},
+          {"name": "Quiz", "color": "purple"}
+        ]
+      }
+    },
+    "description": {
+      "type": "multilineText",
+      "description": "Detailed description of the lesson content and objectives"
+    },
+    "keywords": {
+      "type": "multipleSelect",
+      "description": "Keywords and topics covered in this lesson",
+      "options": {
+        "choices": [
+          {"name": "Python", "color": "blue"},
+          {"name": "JavaScript", "color": "green"},
+          {"name": "Leadership", "color": "red"},
+          {"name": "Data Analysis", "color": "purple"},
+          {"name": "Project Management", "color": "orange"},
+          {"name": "Communication", "color": "yellow"},
+          {"name": "Machine Learning", "color": "cyan"},
+          {"name": "Cloud Computing", "color": "pink"},
+          {"name": "DevOps", "color": "gray"},
+          {"name": "UI/UX Design", "color": "teal"},
+          {"name": "APIs", "color": "brown"},
+          {"name": "Databases", "color": "indigo"},
+          {"name": "Testing", "color": "lime"},
+          {"name": "Security", "color": "maroon"},
+          {"name": "Performance", "color": "navy"}
+        ]
+      }
+    },
+    "difficulty_level": {
+      "type": "singleSelect",
+      "description": "Difficulty level of the lesson",
+      "options": {
+        "choices": [
+          {"name": "Beginner", "color": "green"},
+          {"name": "Intermediate", "color": "yellow"},
+          {"name": "Advanced", "color": "red"}
+        ]
+      }
+    },
+    "estimated_duration": {
+      "type": "number",
+      "description": "Estimated time to complete the lesson in minutes",
+      "options": {
+        "precision": 0
+      }
+    },
+    "status": {
+      "type": "singleSelect",
+      "description": "Current status of the lesson",
+      "options": {
+        "choices": [
+          {"name": "pending", "color": "gray"},
+          {"name": "delivered", "color": "blue"},
+          {"name": "completed", "color": "green"},
+          {"name": "skipped", "color": "red"}
+        ]
+      }
+    },
+    "created_date": {
+      "type": "dateTime",
+      "description": "Timestamp when the lesson was created"
+    },
+    "delivery_date": {
+      "type": "dateTime",
+      "description": "Timestamp when the lesson was delivered to the user"
+    },
+    "completion_date": {
+      "type": "dateTime",
+      "description": "Timestamp when the user completed the lesson"
+    },
+    "delivery_method": {
+      "type": "singleSelect",
+      "description": "Method used to deliver the lesson",
+      "options": {
+        "choices": [
+          {"name": "Email", "color": "blue"},
+          {"name": "WhatsApp", "color": "green"},
+          {"name": "SMS", "color": "orange"}
+        ]
+      }
+    },
+    "engagement_score": {
+      "type": "number",
+      "description": "Engagement score based on user interaction (0-100)",
+      "options": {
+        "precision": 1
+      }
+    },
+    "user_feedback": {
+      "type": "singleSelect",
+      "description": "User feedback on the lesson",
+      "options": {
+        "choices": [
+          {"name": "👍", "color": "green"},
+          {"name": "👎", "color": "red"},
+          {"name": "❤️", "color": "pink"},
+          {"name": "🤔", "color": "yellow"}
+        ]
+      }
+    }
+  }
+}

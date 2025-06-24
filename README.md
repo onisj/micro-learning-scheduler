@@ -27,12 +27,18 @@ The system consists of three main n8n workflows:
 - **Integrations**: Google Calendar, Twilio (WhatsApp), Gmail
 - **Frontend**: HTML/CSS/JavaScript
 - **Deployment**: Docker, Kubernetes, Terraform
+- **CI/CD**: GitHub Actions
+- **Monitoring**: Prometheus, Grafana
+- **Security**: Automated secrets management
+- **Logging**: Structured logging with Logback
 
 ## 📋 Prerequisites
 
 - Node.js v20.x or higher
 - npm or yarn package manager
-- Docker (for containerized deployment)
+- Docker and Docker Compose
+- Kubernetes cluster (for production deployment)
+- Terraform (for infrastructure management)
 - Access to required APIs:
   - Airtable API
   - Google Calendar API
@@ -89,7 +95,10 @@ GMAIL_APP_PASSWORD=your_app_password
 # Setup development environment
 npm run setup:dev
 
-# Start development server
+# Start development server with Docker
+docker-compose -f docker-compose.dev.yml up
+
+# Or start locally
 npm run dev
 ```
 
@@ -129,9 +138,23 @@ micro-learning-scheduler/
 │   ├── openai/             # OpenAI integration
 │   └── twilio/             # Twilio/WhatsApp
 ├── deployment/             # Deployment configurations
+│   ├── README.md           # Deployment documentation
 │   ├── docker/             # Docker configurations
 │   ├── kubernetes/         # K8s manifests
+│   ├── scripts/            # Deployment automation
 │   └── terraform/          # Infrastructure as code
+├── monitoring/             # Observability stack
+│   ├── alerts/             # Alert configurations
+│   ├── dashboards/         # Grafana dashboards
+│   ├── logging/            # Log configurations
+│   ├── metrics/            # Custom metrics
+│   └── prometheus.yml      # Prometheus config
+├── security/               # Security configurations
+│   ├── certificates/       # SSL certificates
+│   ├── policies/           # Security policies
+│   └── scripts/            # Security automation
+├── .github/                # GitHub Actions
+│   └── workflows/          # CI/CD pipelines
 └── docs/                   # Documentation
 ```
 
@@ -161,20 +184,71 @@ docker-compose -f docker-compose.staging.yml up
 ```
 
 ### Production
-```bash
-# Using Docker Compose
-docker-compose -f docker-compose.prod.yml up -d
 
-# Using deployment script
-npm run deploy
+#### Using Docker Compose
+```bash
+docker-compose -f docker-compose.prod.yml up -d
 ```
 
-## 📊 Monitoring
+#### Using Kubernetes
+```bash
+# Deploy to Kubernetes
+kubectl apply -f deployment/kubernetes/
 
-- **Health Checks**: `npm run health-check`
-- **Logs**: Available in `monitoring/logs/`
-- **Metrics**: Accessible via monitoring dashboard
-- **Backup**: `npm run backup`
+# Check deployment status
+kubectl get pods -n micro-learning
+```
+
+#### Using Deployment Scripts
+```bash
+# Automated deployment
+./deployment/scripts/deploy.sh
+
+# Health check
+./deployment/scripts/health-check.sh
+
+# Rollback if needed
+./deployment/scripts/rollback.sh
+```
+
+#### Infrastructure with Terraform
+```bash
+cd deployment/terraform
+terraform init
+terraform plan
+terraform apply
+```
+
+## 📊 Monitoring & Observability
+
+### Health Checks
+```bash
+# Application health
+npm run health-check
+
+# Deployment health check
+./deployment/scripts/health-check.sh
+```
+
+### Monitoring Stack
+- **Prometheus**: Metrics collection (`monitoring/prometheus.yml`)
+- **Grafana**: Visualization dashboards
+- **Alerts**: Application and infrastructure alerts (`monitoring/alerts/`)
+- **Logs**: Structured logging with Logback (`monitoring/logging/`)
+
+### Accessing Monitoring
+- **Prometheus**: `http://localhost:9090`
+- **Grafana**: `http://localhost:3001`
+- **Application Logs**: `docker logs <container_name>`
+
+### Backup & Recovery
+```bash
+# Database backup
+npm run backup
+
+# Configuration backup
+./security/scripts/manage-secrets.sh backup
+```
 
 ## 🤝 Contributing
 

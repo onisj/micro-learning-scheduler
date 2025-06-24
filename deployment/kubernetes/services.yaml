@@ -1,3 +1,371 @@
-# Services
+# Kubernetes Services Configuration
+# Network services for exposing application components
 
-# TODO: Configure services settings
+# Development Environment Services
+# Main Application Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: micro-learning-scheduler-service
+  namespace: micro-learning-scheduler-development
+  labels:
+    app: micro-learning-scheduler
+    environment: development
+    component: app
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3000
+    targetPort: 3000
+    protocol: TCP
+    name: http
+  selector:
+    app: micro-learning-scheduler
+    component: app
+
+---
+# Redis Service (Development)
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+  namespace: micro-learning-scheduler-development
+  labels:
+    app: micro-learning-scheduler
+    environment: development
+    component: redis
+spec:
+  type: ClusterIP
+  ports:
+  - port: 6379
+    targetPort: 6379
+    protocol: TCP
+    name: redis
+  selector:
+    app: redis
+    component: cache
+
+---
+# n8n Service (Development)
+apiVersion: v1
+kind: Service
+metadata:
+  name: n8n-service
+  namespace: micro-learning-scheduler-development
+  labels:
+    app: micro-learning-scheduler
+    environment: development
+    component: n8n
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5678
+    targetPort: 5678
+    protocol: TCP
+    name: http
+  selector:
+    app: n8n
+    component: workflow
+
+---
+# Nginx Service (Development)
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: micro-learning-scheduler-development
+  labels:
+    app: micro-learning-scheduler
+    environment: development
+    component: nginx
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http
+  selector:
+    app: nginx
+    component: proxy
+
+---
+# Staging Environment Services
+# Main Application Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: micro-learning-scheduler-service
+  namespace: micro-learning-scheduler-staging
+  labels:
+    app: micro-learning-scheduler
+    environment: staging
+    component: app
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3000
+    targetPort: 3000
+    protocol: TCP
+    name: http
+  selector:
+    app: micro-learning-scheduler
+    component: app
+
+---
+# PostgreSQL Service (Staging)
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: micro-learning-scheduler-staging
+  labels:
+    app: micro-learning-scheduler
+    environment: staging
+    component: postgres
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5432
+    targetPort: 5432
+    protocol: TCP
+    name: postgres
+  selector:
+    app: postgres
+    component: database
+
+---
+# Redis Service (Staging)
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+  namespace: micro-learning-scheduler-staging
+  labels:
+    app: micro-learning-scheduler
+    environment: staging
+    component: redis
+spec:
+  type: ClusterIP
+  ports:
+  - port: 6379
+    targetPort: 6379
+    protocol: TCP
+    name: redis
+  selector:
+    app: redis
+    component: cache
+
+---
+# n8n Service (Staging)
+apiVersion: v1
+kind: Service
+metadata:
+  name: n8n-service
+  namespace: micro-learning-scheduler-staging
+  labels:
+    app: micro-learning-scheduler
+    environment: staging
+    component: n8n
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5678
+    targetPort: 5678
+    protocol: TCP
+    name: http
+  selector:
+    app: n8n
+    component: workflow
+
+---
+# Nginx Service (Staging)
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: micro-learning-scheduler-staging
+  labels:
+    app: micro-learning-scheduler
+    environment: staging
+    component: nginx
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http
+  - port: 443
+    targetPort: 443
+    protocol: TCP
+    name: https
+  selector:
+    app: nginx
+    component: proxy
+
+---
+# Production Environment Services
+# Main Application Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: micro-learning-scheduler-service
+  namespace: micro-learning-scheduler-production
+  labels:
+    app: micro-learning-scheduler
+    environment: production
+    component: app
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3000
+    targetPort: 3000
+    protocol: TCP
+    name: http
+  selector:
+    app: micro-learning-scheduler
+    component: app
+
+---
+# PostgreSQL Service (Production)
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: micro-learning-scheduler-production
+  labels:
+    app: micro-learning-scheduler
+    environment: production
+    component: postgres
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5432
+    targetPort: 5432
+    protocol: TCP
+    name: postgres
+  selector:
+    app: postgres
+    component: database
+
+---
+# Redis Service (Production)
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+  namespace: micro-learning-scheduler-production
+  labels:
+    app: micro-learning-scheduler
+    environment: production
+    component: redis
+spec:
+  type: ClusterIP
+  ports:
+  - port: 6379
+    targetPort: 6379
+    protocol: TCP
+    name: redis
+  selector:
+    app: redis
+    component: cache
+
+---
+# n8n Service (Production)
+apiVersion: v1
+kind: Service
+metadata:
+  name: n8n-service
+  namespace: micro-learning-scheduler-production
+  labels:
+    app: micro-learning-scheduler
+    environment: production
+    component: n8n
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5678
+    targetPort: 5678
+    protocol: TCP
+    name: http
+  selector:
+    app: n8n
+    component: workflow
+
+---
+# Nginx Service (Production)
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: micro-learning-scheduler-production
+  labels:
+    app: micro-learning-scheduler
+    environment: production
+    component: nginx
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:region:account:certificate/cert-id"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http
+  - port: 443
+    targetPort: 443
+    protocol: TCP
+    name: https
+  selector:
+    app: nginx
+    component: proxy
+
+---
+# Headless Service for StatefulSet (Production Database)
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-headless
+  namespace: micro-learning-scheduler-production
+  labels:
+    app: micro-learning-scheduler
+    environment: production
+    component: postgres
+spec:
+  clusterIP: None
+  ports:
+  - port: 5432
+    targetPort: 5432
+    protocol: TCP
+    name: postgres
+  selector:
+    app: postgres
+    component: database
+
+---
+# Monitoring Service (Prometheus metrics)
+apiVersion: v1
+kind: Service
+metadata:
+  name: metrics-service
+  namespace: micro-learning-scheduler-production
+  labels:
+    app: micro-learning-scheduler
+    environment: production
+    component: metrics
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9090
+    targetPort: 9090
+    protocol: TCP
+    name: metrics
+  selector:
+    app: micro-learning-scheduler
+    component: app

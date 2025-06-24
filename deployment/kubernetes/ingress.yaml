@@ -1,3 +1,170 @@
-# Ingress
+# Kubernetes Ingress Configuration
+# External access to services
 
-# TODO: Configure ingress settings
+# Development Environment Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: micro-learning-scheduler-ingress
+  namespace: micro-learning-scheduler-development
+  labels:
+    app: micro-learning-scheduler
+    environment: development
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  rules:
+  - host: dev.micro-learning-scheduler.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx-service
+            port:
+              number: 80
+
+---
+# Staging Environment Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: micro-learning-scheduler-ingress
+  namespace: micro-learning-scheduler-staging
+  labels:
+    app: micro-learning-scheduler
+    environment: staging
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+spec:
+  tls:
+  - hosts:
+    - staging.micro-learning-scheduler.com
+    secretName: tls-staging-cert
+  rules:
+  - host: staging.micro-learning-scheduler.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx-service
+            port:
+              number: 80
+
+---
+# Production Environment Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: micro-learning-scheduler-ingress
+  namespace: micro-learning-scheduler-production
+  labels:
+    app: micro-learning-scheduler
+    environment: production
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    # Security headers
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Frame-Options: DENY";
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "X-XSS-Protection: 1; mode=block";
+      more_set_headers "Strict-Transport-Security: max-age=31536000; includeSubDomains";
+    # Rate limiting
+    nginx.ingress.kubernetes.io/limit-connections: "10"
+    nginx.ingress.kubernetes.io/limit-rps: "5"
+    nginx.ingress.kubernetes.io/limit-rpm: "100"
+spec:
+  tls:
+  - hosts:
+    - micro-learning-scheduler.com
+    - www.micro-learning-scheduler.com
+    - api.micro-learning-scheduler.com
+    - n8n.micro-learning-scheduler.com
+    secretName: tls-production-cert
+  rules:
+  - host: micro-learning-scheduler.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx-service
+            port:
+              number: 80
+  - host: www.micro-learning-scheduler.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx-service
+            port:
+              number: 80
+  - host: api.micro-learning-scheduler.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: micro-learning-scheduler-service
+            port:
+              number: 3000
+  - host: n8n.micro-learning-scheduler.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: n8n-service
+            port:
+              number: 5678
+
+---
+# Network Policy for Ingress Controller
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-controller
+  namespace: micro-learning-scheduler-production
+spec:
+  podSelector:
+    matchLabels:
+      app: micro-learning-scheduler
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 3000
+    - protocol: TCP
+      port: 5678

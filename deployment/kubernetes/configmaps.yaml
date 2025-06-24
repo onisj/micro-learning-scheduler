@@ -1,3 +1,315 @@
-# Configmaps
+# Kubernetes ConfigMaps Configuration
+# Environment-specific configuration data for the application
 
-# TODO: Configure configmaps settings
+# Development Environment ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: micro-learning-scheduler-config
+  namespace: micro-learning-scheduler-development
+  labels:
+    app: micro-learning-scheduler
+    environment: development
+    component: config
+data:
+  NODE_ENV: "development"
+  LOG_LEVEL: "debug"
+  PORT: "3000"
+  
+  # Database Configuration
+  DB_TYPE: "sqlite"
+  DB_PATH: "/app/data/development.db"
+  
+  # Redis Configuration
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  
+  # n8n Configuration
+  N8N_HOST: "n8n-service"
+  N8N_PORT: "5678"
+  N8N_PROTOCOL: "http"
+  N8N_WEBHOOK_URL: "http://localhost:5678/webhook"
+  
+  # Application Configuration
+  CORS_ORIGIN: "http://localhost:3000,http://localhost:5678"
+  SESSION_SECRET_KEY: "dev-session-secret"
+  JWT_EXPIRES_IN: "24h"
+  
+  # Feature Flags
+  ENABLE_METRICS: "true"
+  ENABLE_HEALTH_CHECKS: "true"
+  ENABLE_DEBUG_LOGS: "true"
+  
+  # Backup Configuration
+  BACKUP_ENABLED: "false"
+  BACKUP_INTERVAL: "0 2 * * *"
+
+---
+# Staging Environment ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: micro-learning-scheduler-config
+  namespace: micro-learning-scheduler-staging
+  labels:
+    app: micro-learning-scheduler
+    environment: staging
+    component: config
+data:
+  NODE_ENV: "staging"
+  LOG_LEVEL: "info"
+  PORT: "3000"
+  
+  # Database Configuration
+  DB_TYPE: "postgres"
+  DB_HOST: "postgres-service"
+  DB_PORT: "5432"
+  DB_NAME: "micro_learning_scheduler_staging"
+  
+  # Redis Configuration
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  REDIS_DB: "1"
+  
+  # n8n Configuration
+  N8N_HOST: "n8n-service"
+  N8N_PORT: "5678"
+  N8N_PROTOCOL: "https"
+  N8N_WEBHOOK_URL: "https://staging-n8n.micro-learning-scheduler.com/webhook"
+  
+  # Application Configuration
+  CORS_ORIGIN: "https://staging.micro-learning-scheduler.com"
+  JWT_EXPIRES_IN: "12h"
+  
+  # Feature Flags
+  ENABLE_METRICS: "true"
+  ENABLE_HEALTH_CHECKS: "true"
+  ENABLE_DEBUG_LOGS: "false"
+  
+  # Backup Configuration
+  BACKUP_ENABLED: "true"
+  BACKUP_INTERVAL: "0 3 * * *"
+  BACKUP_RETENTION_DAYS: "30"
+
+---
+# Production Environment ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: micro-learning-scheduler-config
+  namespace: micro-learning-scheduler-production
+  labels:
+    app: micro-learning-scheduler
+    environment: production
+    component: config
+data:
+  NODE_ENV: "production"
+  LOG_LEVEL: "warn"
+  PORT: "3000"
+  
+  # Database Configuration
+  DB_TYPE: "postgres"
+  DB_HOST: "postgres-service"
+  DB_PORT: "5432"
+  DB_NAME: "micro_learning_scheduler_production"
+  
+  # Redis Configuration
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  
+  # n8n Configuration
+  N8N_HOST: "n8n-service"
+  N8N_PORT: "5678"
+  N8N_PROTOCOL: "https"
+  N8N_WEBHOOK_URL: "https://n8n.micro-learning-scheduler.com/webhook"
+  
+  # Application Configuration
+  CORS_ORIGIN: "https://micro-learning-scheduler.com"
+  JWT_EXPIRES_IN: "8h"
+  
+  # Feature Flags
+  ENABLE_METRICS: "true"
+  ENABLE_HEALTH_CHECKS: "true"
+  ENABLE_DEBUG_LOGS: "false"
+  
+  # Backup Configuration
+  BACKUP_ENABLED: "true"
+  BACKUP_INTERVAL: "0 2 * * *"
+  BACKUP_RETENTION_DAYS: "90"
+  
+  # Security Configuration
+  RATE_LIMIT_WINDOW_MS: "900000"
+  RATE_LIMIT_MAX_REQUESTS: "100"
+  
+---
+# Nginx Configuration for reverse proxy
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: micro-learning-scheduler-development
+  labels:
+    app: micro-learning-scheduler
+    component: nginx
+data:
+  nginx.conf: |
+    events {
+        worker_connections 1024;
+    }
+    
+    http {
+        upstream app {
+            server micro-learning-scheduler-service:3000;
+        }
+        
+        upstream n8n {
+            server n8n-service:5678;
+        }
+        
+        server {
+            listen 80;
+            server_name localhost;
+            
+            location / {
+                proxy_pass http://app;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+            
+            location /n8n/ {
+                proxy_pass http://n8n/;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection "upgrade";
+            }
+            
+            location /health {
+                access_log off;
+                return 200 "healthy\n";
+                add_header Content-Type text/plain;
+            }
+        }
+    }
+
+---
+# Staging Nginx Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: micro-learning-scheduler-staging
+  labels:
+    app: micro-learning-scheduler
+    component: nginx
+data:
+  nginx.conf: |
+    events {
+        worker_connections 1024;
+    }
+    
+    http {
+        upstream app {
+            server micro-learning-scheduler-service:3000;
+        }
+        
+        upstream n8n {
+            server n8n-service:5678;
+        }
+        
+        server {
+            listen 80;
+            server_name staging.micro-learning-scheduler.com;
+            
+            location / {
+                proxy_pass http://app;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+            
+            location /n8n/ {
+                proxy_pass http://n8n/;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection "upgrade";
+            }
+            
+            location /health {
+                access_log off;
+                return 200 "healthy\n";
+                add_header Content-Type text/plain;
+            }
+        }
+    }
+
+---
+# Production Nginx Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: micro-learning-scheduler-production
+  labels:
+    app: micro-learning-scheduler
+    component: nginx
+data:
+  nginx.conf: |
+    events {
+        worker_connections 2048;
+    }
+    
+    http {
+        upstream app {
+            server micro-learning-scheduler-service:3000;
+        }
+        
+        upstream n8n {
+            server n8n-service:5678;
+        }
+        
+        server {
+            listen 80;
+            server_name micro-learning-scheduler.com;
+            
+            # Security headers
+            add_header X-Frame-Options DENY;
+            add_header X-Content-Type-Options nosniff;
+            add_header X-XSS-Protection "1; mode=block";
+            add_header Strict-Transport-Security "max-age=31536000; includeSubDomains";
+            
+            location / {
+                proxy_pass http://app;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+            
+            location /n8n/ {
+                proxy_pass http://n8n/;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection "upgrade";
+            }
+            
+            location /health {
+                access_log off;
+                return 200 "healthy\n";
+                add_header Content-Type text/plain;
+            }
+        }
+    }

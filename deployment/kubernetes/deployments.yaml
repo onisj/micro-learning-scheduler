@@ -1,3 +1,612 @@
-# Deployments
+# Kubernetes Deployments Configuration
+# Application workloads for different environments
 
-# TODO: Configure deployments settings
+# Development Environment Deployments
+# Main Application Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: micro-learning-scheduler
+  namespace: micro-learning-scheduler-development
+  labels:
+    app: micro-learning-scheduler
+    environment: development
+    component: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: micro-learning-scheduler
+      component: app
+  template:
+    metadata:
+      labels:
+        app: micro-learning-scheduler
+        component: app
+        environment: development
+    spec:
+      containers:
+      - name: micro-learning-scheduler
+        image: micro-learning-scheduler:development
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: micro-learning-scheduler-config
+              key: NODE_ENV
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: micro-learning-scheduler-config
+              key: PORT
+        - name: DB_TYPE
+          valueFrom:
+            configMapKeyRef:
+              name: micro-learning-scheduler-config
+              key: DB_TYPE
+        - name: DB_PATH
+          valueFrom:
+            configMapKeyRef:
+              name: micro-learning-scheduler-config
+              key: DB_PATH
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: micro-learning-scheduler-secrets
+              key: JWT_SECRET
+        - name: SESSION_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: micro-learning-scheduler-secrets
+              key: SESSION_SECRET
+        volumeMounts:
+        - name: data-volume
+          mountPath: /app/data
+        - name: logs-volume
+          mountPath: /app/logs
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: data-volume
+        emptyDir: {}
+      - name: logs-volume
+        emptyDir: {}
+
+---
+# Redis Deployment (Development)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: micro-learning-scheduler-development
+  labels:
+    app: redis
+    environment: development
+    component: cache
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+      component: cache
+  template:
+    metadata:
+      labels:
+        app: redis
+        component: cache
+        environment: development
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        ports:
+        - containerPort: 6379
+          name: redis
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: micro-learning-scheduler-secrets
+              key: REDIS_PASSWORD
+        command:
+        - redis-server
+        - --requirepass
+        - $(REDIS_PASSWORD)
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+      volumes:
+      - name: redis-data
+        emptyDir: {}
+
+---
+# n8n Deployment (Development)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n
+  namespace: micro-learning-scheduler-development
+  labels:
+    app: n8n
+    environment: development
+    component: workflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: n8n
+      component: workflow
+  template:
+    metadata:
+      labels:
+        app: n8n
+        component: workflow
+        environment: development
+    spec:
+      containers:
+      - name: n8n
+        image: n8nio/n8n:latest
+        ports:
+        - containerPort: 5678
+          name: http
+        env:
+        - name: N8N_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: micro-learning-scheduler-config
+              key: N8N_HOST
+        - name: N8N_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: micro-learning-scheduler-config
+              key: N8N_PORT
+        - name: N8N_PROTOCOL
+          valueFrom:
+            configMapKeyRef:
+              name: micro-learning-scheduler-config
+              key: N8N_PROTOCOL
+        - name: N8N_USER_MANAGEMENT_JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: micro-learning-scheduler-secrets
+              key: N8N_USER_MANAGEMENT_JWT_SECRET
+        - name: N8N_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: micro-learning-scheduler-secrets
+              key: N8N_ENCRYPTION_KEY
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        volumeMounts:
+        - name: n8n-data
+          mountPath: /home/node/.n8n
+      volumes:
+      - name: n8n-data
+        emptyDir: {}
+
+---
+# Staging Environment Deployments
+# Main Application Deployment (Staging)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: micro-learning-scheduler
+  namespace: micro-learning-scheduler-staging
+  labels:
+    app: micro-learning-scheduler
+    environment: staging
+    component: app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: micro-learning-scheduler
+      component: app
+  template:
+    metadata:
+      labels:
+        app: micro-learning-scheduler
+        component: app
+        environment: staging
+    spec:
+      containers:
+      - name: micro-learning-scheduler
+        image: micro-learning-scheduler:staging
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: micro-learning-scheduler-config
+              key: NODE_ENV
+        - name: DB_TYPE
+          valueFrom:
+            configMapKeyRef:
+              name: micro-learning-scheduler-config
+              key: DB_TYPE
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: micro-learning-scheduler-config
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: micro-learning-scheduler-config
+              key: DB_PORT
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: micro-learning-scheduler-config
+              key: DB_NAME
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: micro-learning-scheduler-secrets
+              key: DB_USERNAME
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: micro-learning-scheduler-secrets
+              key: DB_PASSWORD
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: micro-learning-scheduler-secrets
+              key: JWT_SECRET
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      imagePullSecrets:
+      - name: docker-registry-secret
+
+---
+# PostgreSQL Deployment (Staging)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: micro-learning-scheduler-staging
+  labels:
+    app: postgres
+    environment: staging
+    component: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+      component: database
+  template:
+    metadata:
+      labels:
+        app: postgres
+        component: database
+        environment: staging
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        ports:
+        - containerPort: 5432
+          name: postgres
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: micro-learning-scheduler-config
+              key: DB_NAME
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: micro-learning-scheduler-secrets
+              key: DB_USERNAME
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: micro-learning-scheduler-secrets
+              key: DB_PASSWORD
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: postgres-data
+        persistentVolumeClaim:
+          claimName: postgres-pvc-staging
+
+---
+# Production Environment Deployments
+# Main Application Deployment (Production)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: micro-learning-scheduler
+  namespace: micro-learning-scheduler-production
+  labels:
+    app: micro-learning-scheduler
+    environment: production
+    component: app
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: micro-learning-scheduler
+      component: app
+  template:
+    metadata:
+      labels:
+        app: micro-learning-scheduler
+        component: app
+        environment: production
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: micro-learning-scheduler
+        image: micro-learning-scheduler:production
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+        - containerPort: 9090
+          name: metrics
+        env:
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: micro-learning-scheduler-config
+              key: NODE_ENV
+        - name: DB_TYPE
+          valueFrom:
+            configMapKeyRef:
+              name: micro-learning-scheduler-config
+              key: DB_TYPE
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: micro-learning-scheduler-config
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: micro-learning-scheduler-config
+              key: DB_PORT
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: micro-learning-scheduler-config
+              key: DB_NAME
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: micro-learning-scheduler-secrets
+              key: DB_USERNAME
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: micro-learning-scheduler-secrets
+              key: DB_PASSWORD
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: micro-learning-scheduler-secrets
+              key: JWT_SECRET
+        - name: ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: micro-learning-scheduler-secrets
+              key: ENCRYPTION_KEY
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "1000m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+        - name: logs-volume
+          mountPath: /app/logs
+      volumes:
+      - name: tmp-volume
+        emptyDir: {}
+      - name: logs-volume
+        emptyDir: {}
+      imagePullSecrets:
+      - name: docker-registry-secret
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - micro-learning-scheduler
+              topologyKey: kubernetes.io/hostname
+
+---
+# PostgreSQL StatefulSet (Production)
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: micro-learning-scheduler-production
+  labels:
+    app: postgres
+    environment: production
+    component: database
+spec:
+  serviceName: postgres-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+      component: database
+  template:
+    metadata:
+      labels:
+        app: postgres
+        component: database
+        environment: production
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        ports:
+        - containerPort: 5432
+          name: postgres
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: micro-learning-scheduler-config
+              key: DB_NAME
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: micro-learning-scheduler-secrets
+              key: DB_USERNAME
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: micro-learning-scheduler-secrets
+              key: DB_PASSWORD
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        securityContext:
+          runAsUser: 999
+          runAsGroup: 999
+          fsGroup: 999
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - $(POSTGRES_USER)
+            - -d
+            - $(POSTGRES_DB)
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - $(POSTGRES_USER)
+            - -d
+            - $(POSTGRES_DB)
+          initialDelaySeconds: 5
+          periodSeconds: 5
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: "gp2"
+      resources:
+        requests:
+          storage: 100Gi
